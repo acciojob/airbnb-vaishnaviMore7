@@ -26,10 +26,10 @@ public class HotelManagementService {
         return hotelManagementRepository.bookARoom(booking);
     }
     public int getBookings(Integer aadharCard) {
-        return getBookings(aadharCard);
+        return hotelManagementRepository.getBookings(aadharCard);
     }
     public Hotel updateFacilities(List<Facility> newFacilities, String hotelName){
-        return updateFacilities(newFacilities, hotelName);
+        return hotelManagementRepository.updateFacilities(newFacilities, hotelName);
     }
 
 }

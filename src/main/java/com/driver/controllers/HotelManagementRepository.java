@@ -16,27 +16,27 @@ public class HotelManagementRepository {
     HashMap<String,Hotel>hotel_data=new HashMap<>();
     HashMap<String,Booking>Booking_data=new HashMap<>();
     HashMap<String,User>User_data=new HashMap<>();
-    public String addHotel(Hotel hotel){
+    public String addHotel(Hotel hotel){ //error
 
         //You need to add an hotel to the database
         //incase the hotelName is null or the hotel Object is null return an empty a FAILURE
         //Incase somebody is trying to add the duplicate hotelName return FAILURE
         //in all other cases return SUCCESS after successfully adding the hotel to the hotelDb.
 
-        if(hotel_data.containsValue(hotel)){
+        if(hotel_data.containsValue(hotel)){ //error
             return "FAILURE";
         }
         else if (hotel.getHotelName()==null){
             return " ";
 
-        }
+        } //error
 
         hotel_data.put(hotel.getHotelName(),hotel);
         return "SUCCESS";
 
     }
 
-
+//error
     public Integer addUser(User user){
 
         //You need to add a User Object to the database
@@ -44,7 +44,7 @@ public class HotelManagementRepository {
         if(user.getaadharCardNo()==0){
             return null;
         }
-        User_data.put(user.getName(), user);
+        User_data.put(user.getName(), user); //error
         return user.getaadharCardNo();
     }
     HashMap<String,Integer>Hotel_Facility=new HashMap<>();
@@ -54,12 +54,12 @@ public class HotelManagementRepository {
         return map
                 .entrySet()
                 .stream()
-                .filter(entry -> Objects.equals(entry.getValue(), value))
+                .filter(entry -> Objects.equals(entry.getValue(), value)) //error
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
 
     }
-    public String getHotelWithMostFacilities(){
+    public String getHotelWithMostFacilities(){  //error
 
         //Out of all the hotels we have added so far, we need to find the hotelName with most no of facilities
         //Incase there is a tie return the lexicographically smaller hotelName
@@ -69,13 +69,13 @@ public class HotelManagementRepository {
         }
         int max= Collections.max(Hotel_Facility.values());
         String key=null;
-        for (String key1 : getKeysJava8(Hotel_Facility, max)) {
+        for (String key1 : getKeysJava8(Hotel_Facility, max)) { //error
             key=key1;
         }
 
         for(Map.Entry<String,Integer>e:Hotel_Facility.entrySet()){
             if(max==e.getValue()){
-                if(key.length()<e.getKey().length()){
+                if(key.length()<e.getKey().length()){  //error
                     return key;
                 } else if (key.length()>e.getKey().length()) {
                     return e.getKey();
@@ -83,7 +83,7 @@ public class HotelManagementRepository {
             }
         }
         if(max==0){
-            return " ";
+            return " ";  //error
         }
 
         return key;
