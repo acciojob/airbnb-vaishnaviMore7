@@ -22,16 +22,14 @@ public class HotelManagementRepository {
         //incase the hotelName is null or the hotel Object is null return an empty a FAILURE
         //Incase somebody is trying to add the duplicate hotelName return FAILURE
         //in all other cases return SUCCESS after successfully adding the hotel to the hotelDb.
-
+        hotel_data.put(hotel.getHotelName(),hotel);
         if(hotel_data.containsValue(hotel)){ //error
             return "FAILURE";
         }
-        else if (hotel.getHotelName()==null){
-            return " ";
-
+        if (hotel.getHotelName()==null){
+            return "FAILURE ";
         } //error
 
-        hotel_data.put(hotel.getHotelName(),hotel);
         return "SUCCESS";
 
     }
@@ -41,24 +39,14 @@ public class HotelManagementRepository {
 
         //You need to add a User Object to the database
         //Assume that user will always be a valid user and return the aadharCardNo of the user
+        User_data.put(user.getName(), user);
         if(user.getaadharCardNo()==0){
             return null;
         }
-        User_data.put(user.getName(), user); //error
+         //error
         return user.getaadharCardNo();
     }
     HashMap<String,Integer>Hotel_Facility=new HashMap<>();
-    private static Set<String> getKeysJava8(
-            Map<String, Integer> map, Integer value) {
-
-        return map
-                .entrySet()
-                .stream()
-                .filter(entry -> Objects.equals(entry.getValue(), value)) //error
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
-
-    }
     public String getHotelWithMostFacilities(){  //error
 
         //Out of all the hotels we have added so far, we need to find the hotelName with most no of facilities
@@ -68,25 +56,28 @@ public class HotelManagementRepository {
             Hotel_Facility.put(e.getValue().getHotelName(),e.getValue().getFacilities().size());
         }
         int max= Collections.max(Hotel_Facility.values());
-        String key=null;
-        for (String key1 : getKeysJava8(Hotel_Facility, max)) { //error
-            key=key1;
+        String ans=null;
+        for (Map.Entry<String,Integer>e:Hotel_Facility.entrySet()) { //error
+            if(e.getValue()==max){
+                ans=e.getKey();
+            }
         }
 
         for(Map.Entry<String,Integer>e:Hotel_Facility.entrySet()){
             if(max==e.getValue()){
-                if(key.length()<e.getKey().length()){  //error
-                    return key;
-                } else if (key.length()>e.getKey().length()) {
+                if(ans.length()<e.getKey().length()){  //error
+                    return ans;
+                } else if (ans.length()>e.getKey().length()) {
                     return e.getKey();
                 }
             }
-        }
-        if(max==0){
-            return " ";  //error
+            if(max==0){
+                return "";
+            }
         }
 
-        return key;
+
+        return ans;
     }
 
 
@@ -102,11 +93,11 @@ public class HotelManagementRepository {
         String name= booking.getHotelName();
         int total_amount=0;
         for(Map.Entry<String,Hotel>e:hotel_data.entrySet()){
-            if(name.equals(e.getValue().getHotelName()) && n>e.getValue().getAvailableRooms()){
-                return -1;
-            }
             if(name.equals(e.getValue().getHotelName()) && n<e.getValue().getAvailableRooms()){
                 total_amount=n*e.getValue().getPricePerNight();
+            }
+            if(name.equals(e.getValue().getHotelName()) && n>e.getValue().getAvailableRooms()){
+                return -1;
             }
 
         }
