@@ -5,6 +5,7 @@ import com.driver.model.Facility;
 import com.driver.model.Hotel;
 import com.driver.model.User;
 import com.sun.jdi.connect.Connector;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,21 +16,22 @@ import java.util.stream.Collectors;
 public class HotelManagementRepository {
     HashMap<String,Hotel>hotel_data=new HashMap<>();
     HashMap<String,Booking>Booking_data=new HashMap<>();
-    HashMap<String,User>User_data=new HashMap<>();
+    HashMap<Integer,User>User_data=new HashMap<>();
+    HashMap<Integer,Integer> countOfBookings=new HashMap<>();
     public String addHotel(Hotel hotel){ //error
 
         //You need to add an hotel to the database
         //incase the hotelName is null or the hotel Object is null return an empty a FAILURE
         //Incase somebody is trying to add the duplicate hotelName return FAILURE
         //in all other cases return SUCCESS after successfully adding the hotel to the hotelDb.
-        hotel_data.put(hotel.getHotelName(),hotel);
-        if(hotel_data.containsValue(hotel)){ //error
-            return "FAILURE";
-        }
-        if (hotel.getHotelName()==null){
+
+        if (hotel==null || hotel.getHotelName()==null){
             return "FAILURE ";
         } //error
-
+        if(hotel_data.containsKey(hotel.getHotelName())){ //error
+            return "FAILURE";
+        }
+        hotel_data.put(hotel.getHotelName(),hotel);
         return "SUCCESS";
 
     }
@@ -39,10 +41,8 @@ public class HotelManagementRepository {
 
         //You need to add a User Object to the database
         //Assume that user will always be a valid user and return the aadharCardNo of the user
-        User_data.put(user.getName(), user);
-        if(user.getaadharCardNo()==0){
-            return null;
-        }
+
+        User_data.put(user.getaadharCardNo(), user);
          //error
         return user.getaadharCardNo();
     }
@@ -52,7 +52,7 @@ public class HotelManagementRepository {
         //Out of all the hotels we have added so far, we need to find the hotelName with most no of facilities
         //Incase there is a tie return the lexicographically smaller hotelName
         //Incase there is not even a single hotel with atleast 1 facility return "" (empty string)
-        for(Map.Entry<String,Hotel>e:hotel_data.entrySet()){
+        /*for(Map.Entry<String,Hotel>e:hotel_data.entrySet()){
             Hotel_Facility.put(e.getValue().getHotelName(),e.getValue().getFacilities().size());
         }
         int max= Collections.max(Hotel_Facility.values());
@@ -77,11 +77,29 @@ public class HotelManagementRepository {
         }
 
 
-        return ans;
+        return ans;*/
+        int facilities= 0;
+
+        String hotelName = "";
+
+        for(Hotel hotel:hotel_data.values()){
+
+            if(hotel.getFacilities().size()>facilities){
+                facilities = hotel.getFacilities().size();
+                hotelName = hotel.getHotelName();
+            }
+            else if(hotel.getFacilities().size()==facilities){
+                if(hotel.getHotelName().compareTo(hotelName)<0){
+                    hotelName = hotel.getHotelName();
+                }
+            }
+        }
+        return hotelName;
     }
 
 
-    public int bookARoom(Booking booking){
+
+    public int bookARoom(@NotNull Booking booking){
 
         //The booking object coming from postman will have all the attributes except bookingId and amountToBePaid;
         //Have bookingId as a random UUID generated String
@@ -89,43 +107,51 @@ public class HotelManagementRepository {
         //Calculate the total amount paid by the person based on no. of rooms booked and price of the room per night.
         //If there arent enough rooms available in the hotel that we are trying to book return -1
         //in other case return total amount paid
-        int n=booking.getNoOfRooms();
-        String name= booking.getHotelName();
-        int total_amount=0;
-        for(Map.Entry<String,Hotel>e:hotel_data.entrySet()){
-            if(name.equals(e.getValue().getHotelName()) && n<e.getValue().getAvailableRooms()){
-                total_amount=n*e.getValue().getPricePerNight();
-            }
-            if(name.equals(e.getValue().getHotelName()) && n>e.getValue().getAvailableRooms()){
-                return -1;
-            }
+        String key = UUID.randomUUID().toString();
 
+        booking.setBookingId(key);
+
+        String hotelName = booking.getHotelName();
+
+        Hotel hotel = hotel_data.get(hotelName);
+
+        int availableRooms = hotel.getAvailableRooms();
+
+        if(availableRooms<booking.getNoOfRooms()){
+            return -1;
         }
-        return total_amount;
-    }
 
-    int no_of_booking=0;
+        int amountToBePaid = hotel.getPricePerNight()*booking.getNoOfRooms();
+        booking.setAmountToBePaid(amountToBePaid);
+
+        //Make sure we check this part of code as well
+        hotel.setAvailableRooms(hotel.getAvailableRooms()-booking.getNoOfRooms());
+
+        Booking_data.put(key,booking);
+
+        hotel_data.put(hotelName,hotel);
+
+        int aadharCard = booking.getBookingAadharCard();
+        Integer currentBookings = countOfBookings.get(aadharCard);
+        countOfBookings.put(aadharCard, Objects.nonNull(currentBookings)?1+currentBookings:1);
+        return amountToBePaid;
+    }
     public int getBookings(Integer aadharCard)
     {
-        for(Map.Entry<String, Booking> e:Booking_data.entrySet()){
-            if(e.getValue().getBookingAadharCard()==aadharCard){
-                no_of_booking++;
-            }
-        }
+
         //In this function return the bookings done by a person
 
-        return no_of_booking;
+        return countOfBookings.get(aadharCard);
     }
 
 
     public Hotel updateFacilities(List<Facility> newFacilities, String hotelName){
-        Hotel hotel=null;
 
         //We are having a new facilites that a hotel is planning to bring.
         //If the hotel is already having that facility ignore that facility otherwise add that facility in the hotelDb
         //return the final updated List of facilities and also update that in your hotelDb
         //Note that newFacilities can also have duplicate facilities possible
-        for(Map.Entry<String, Hotel> e:hotel_data.entrySet()){
+        /*for(Map.Entry<String, Hotel> e:hotel_data.entrySet()){
             if(e.getValue().getFacilities().equals(newFacilities) && e.getValue().getHotelName().equals(hotelName)){
                 break;
             }
@@ -138,6 +164,24 @@ public class HotelManagementRepository {
         }
 
         return hotel ;
+    }*/
+        List<Facility> oldFacilities = hotel_data.get(hotelName).getFacilities();
+
+        for(Facility facility: newFacilities){
+
+            if(oldFacilities.contains(facility)){
+                continue;
+            }else{
+                oldFacilities.add(facility);
+            }
+        }
+
+        Hotel hotel = hotel_data.get(hotelName);
+        hotel.setFacilities(oldFacilities);
+
+        hotel_data.put(hotelName,hotel);
+
+        return hotel;
     }
 
 }
